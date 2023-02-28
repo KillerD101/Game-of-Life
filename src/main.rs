@@ -1,3 +1,5 @@
+extern crate pancurses;
+
 use pancurses::{initscr, Window, Input};
 
 const DEFAULT_BOARD_WIDTH: usize = 50;
