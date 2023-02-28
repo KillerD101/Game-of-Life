@@ -5,6 +5,8 @@ use pancurses::{initscr, Window, Input};
 const DEFAULT_BOARD_WIDTH: usize = 50;
 const DEFAULT_BOARD_HEIGHT: usize = 20;
 
+const QUIT: Input = if cfg!(windows) {Input::KeyExit} else {Input::KeyBackspace};
+
 struct Board {
     board: Vec<bool>,
     width: usize,
@@ -123,13 +125,11 @@ fn main() {
 
     let mut running = true;
 
-    if wait_for_input(&window) == Input::KeyBackspace {
+    if wait_for_input(&window) == QUIT {
         running = false;
     }
 
     while running {
-        print_break();
-
         let mut next_state: Vec<bool> = Vec::new();
 
         for col in 0..board.height {
@@ -148,7 +148,7 @@ fn main() {
 
         board.print(&window);
 
-        if wait_for_input(&window) == Input::KeyBackspace {
+        if wait_for_input(&window) == QUIT {
             running = false;
         }
     }
