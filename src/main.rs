@@ -1,4 +1,4 @@
-use std::io::Read;
+use pancurses::{initscr, Window, Input};
 
 const DEFAULT_BOARD_WIDTH: usize = 50;
 const DEFAULT_BOARD_HEIGHT: usize = 20;
@@ -25,13 +25,19 @@ impl Board {
         return board;
     }
 
-    fn print(&self) {
+    fn print(&self, window: &Window) {
+        window.clear();
+
         for i in 0..self.height {
             for j in 0..self.width {
-                print!("{}", if self.board[i * self.width + j] {'#'} else {'O'});
+                window.printw(
+                    if self.board[i * self.width + j] {"#"} else {"O"}
+                );
             }
-            println!();
+            window.printw("\n");
         }
+
+        window.refresh();
     }
 
     fn set_state(&mut self, next: Vec<bool>) {
@@ -89,15 +95,21 @@ fn print_break() {
     println!();
 }
 
-fn wait_for_input() {
-    let mut _unused = String::new();
-    std::io::stdin().read_line(&mut _unused);
+fn wait_for_input(window: &Window) -> Input{
+    let mut i: Option<Input> = None;
+
+    while i.is_none() {
+        i = window.getch();
+    }
+
+    return i.unwrap();
 }
 
 fn main() {
     let mut board = Board::new(
         DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT
     );
+    let window: Window = initscr();
 
     board.set(7, 7);
     board.set(7, 8);
@@ -105,11 +117,15 @@ fn main() {
     board.set(6, 7);
     board.set(8, 7);
  
-    board.print();
+    board.print(&window);
 
-    wait_for_input();
+    let mut running = true;
 
-    loop {
+    if wait_for_input(&window) == Input::KeyBackspace {
+        running = false;
+    }
+
+    while running {
         print_break();
 
         let mut next_state: Vec<bool> = Vec::new();
@@ -128,8 +144,12 @@ fn main() {
 
         board.set_state(next_state);
 
-        board.print();
+        board.print(&window);
 
-        wait_for_input();
+        if wait_for_input(&window) == Input::KeyBackspace {
+            running = false;
+        }
     }
+
+    window.delwin();
 }
